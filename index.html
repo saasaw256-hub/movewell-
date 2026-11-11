@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10251f">
+  <meta name="description" content="A simple weekly full-body strength and recovery tracker.">
+  <title>MoveWell — Weekly Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <style>
+    :root{color-scheme:dark;--bg:#0b1512;--panel:#14231e;--panel2:#1b3028;--line:#2b4439;--text:#eff8f1;--muted:#a8bdb0;--green:#8be0ae;--green2:#2d9b65;--orange:#f2c47c}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(ellipse at top,#183329 0,#0b1512 55%);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+    .wrap{max-width:760px;margin:auto;padding:24px 16px 48px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}
+    .brand{display:flex;align-items:center;gap:11px}.logo{width:42px;height:42px;border-radius:14px;background:#234a38;display:grid;place-items:center;font-size:22px}
+    h1{font-size:1.3rem;margin:0;letter-spacing:.2px}.sub{color:var(--muted);font-size:.86rem}.install{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 13px;border-radius:12px;font-weight:650}
+    .hero,.card{background:linear-gradient(145deg,#172a23,#122019);border:1px solid var(--line);border-radius:22px;padding:19px;margin-bottom:16px;box-shadow:0 12px 30px #0002}
+    .herohead{display:flex;justify-content:space-between;gap:12px;align-items:center}.eyebrow{color:var(--green);font-size:.76rem;font-weight:750;letter-spacing:1.2px;text-transform:uppercase}
+    .percent{font-size:1.55rem;font-weight:800}.bar{height:10px;background:#263b31;border-radius:99px;overflow:hidden;margin:13px 0 7px}.fill{height:100%;width:0;background:linear-gradient(90deg,#45b879,#a2edbd);border-radius:99px;transition:width .2s}
+    .muted{color:var(--muted);font-size:.86rem}.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:13px 0 18px}
+    .day{border:1px solid var(--line);background:#13231c;color:var(--text);border-radius:14px;padding:10px 3px;cursor:pointer;text-align:center;min-width:0}
+    .day strong{display:block;font-size:.88rem}.day small{display:block;color:var(--muted);font-size:.68rem;margin-top:4px}.day.active{border-color:var(--green);background:#214332;box-shadow:inset 0 0 0 1px var(--green)}
+    .day.done:after{content:"✓";display:block;color:var(--green);font-size:.75rem;font-weight:800}
+    .sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.sectionhead h2{font-size:1.15rem;margin:0}.tag{font-size:.72rem;padding:5px 9px;border-radius:99px;background:#234a38;color:var(--green);font-weight:700}
+    .tag.rest{background:#29352f;color:#c3d0c7}.tasklist{display:grid;gap:9px;margin:16px 0}.task{display:flex;gap:12px;align-items:flex-start;background:#102019;border:1px solid #263d32;border-radius:14px;padding:12px}
+    .task input{accent-color:#68cf91;width:19px;height:19px;margin:2px 0 0;flex:none}.task span{flex:1}.task.checked span{text-decoration:line-through;color:#91a79a}
+    textarea{width:100%;min-height:85px;background:#0e1b15;border:1px solid var(--line);border-radius:13px;padding:12px;color:var(--text);font:inherit;resize:vertical}
+    .actions{display:flex;gap:9px;margin-top:14px}.btn{border:1px solid var(--line);background:#1d392b;color:var(--text);padding:11px 14px;border-radius:12px;font-weight:700;cursor:pointer}.btn.secondary{background:transparent}.btn:disabled{opacity:.35;cursor:not-allowed}
+    .tip{border-left:3px solid var(--orange);padding:10px 12px;background:#2a281c;border-radius:0 12px 12px 0;color:#e7ddc6;font-size:.85rem;margin-top:14px}
+    .footer{text-align:center;color:var(--muted);font-size:.76rem;padding:8px}
+    @media(max-width:420px){.wrap{padding:16px 12px 34px}.hero,.card{padding:15px}.days{gap:5px}.day{padding:9px 1px}.day strong{font-size:.8rem}.day small{font-size:.62rem}.install{padding:9px;font-size:.8rem}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><div class="logo">✦</div><div><h1>MoveWell</h1><div class="sub">Your weekly strength & recovery tracker</div></div></div>
+    <button class="install" id="installBtn" hidden>＋ Install</button>
+  </header>
+
+  <section class="hero">
+    <div class="herohead"><div><div class="eyebrow">This week's progress</div><div class="muted" id="countText">0 tasks completed</div></div><div class="percent" id="percent">0%</div></div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="muted">Tick off each task as you complete it. Your progress is saved on this device.</div>
+  </section>
+
+  <nav class="days" id="days" aria-label="Choose a day"></nav>
+
+  <main class="card">
+    <div class="sectionhead"><div><div class="eyebrow" id="dayLabel">MONDAY</div><h2 id="dayTitle">Full-body session</h2></div><span class="tag" id="dayTag">WORKOUT</span></div>
+    <div class="muted" id="dayIntro">About 30 minutes · Move with control, not speed.</div>
+    <div class="tasklist" id="tasks"></div>
+    <label for="notes" class="muted">Your notes</label>
+    <textarea id="notes" placeholder="How did it feel? Any progress or discomfort?"></textarea>
+    <div class="actions"><button class="btn secondary" id="prev">← Previous</button><button class="btn" id="next">Next day →</button></div>
+    <div class="tip" id="tip">Keep movements comfortable and controlled. Stop if you feel pain; don't try to push through it.</div>
+  </main>
+
+  <section class="card">
+    <div class="sectionhead"><h2>Weekly plan</h2><span class="tag">3 sessions</span></div>
+    <p class="muted">Monday, Wednesday and Friday are workout days. Tuesday, Thursday, Saturday and Sunday are recovery days. Rest is part of getting stronger.</p>
+    <button class="btn secondary" id="reset">Reset this week's checkmarks</button>
+  </section>
+  <div class="footer">MoveWell · A simple routine tracker · Your data stays in this browser</div>
+</div>
+<script>
+const workout = [
+  ["Warm-up — 5 min","March on the spot and do gentle arm circles, ankle rotations and easy movements."],
+  ["Slow squats — 4 min","2 sets of 8–12. Lower for about 3 seconds; use a comfortable range."],
+  ["Calf raises — 4 min","2 sets of 10–15. Hold a support if needed and lower with control."],
+  ["Incline push-ups — 4 min","2 sets of 8–12 against a stable surface at a suitable height."],
+  ["Glute bridges — 4 min","2 sets of 10–12. Lift hips smoothly and pause briefly."],
+  ["Resistance-band curls — 4 min","2 sets of 10–12 with a light band, if available. Keep the movement controlled."],
+  ["Plank — 3 min","2 holds of 15–30 seconds. Keep breathing; stop if your form breaks down."],
+  ["Cool-down — 2 min","Walk gently and relax. Stretch only within a comfortable range."]
+];
+const recovery = [
+  ["Recovery day","No planned strength workout today."],
+  ["Optional gentle walk","Keep it easy and comfortable."],
+  ["Gentle mobility","Optional comfortable shoulder, hip and ankle movements."],
+  ["Rest and refuel","Eat regular balanced meals and get enough sleep."]
+];
+const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const isWorkout = [true,false,true,false,true,false,false];
+let selected = 0;
+let state = JSON.parse(localStorage.getItem("movewell-state") || '{"checks":{},"notes":{}}');
+const $ = id => document.getElementById(id);
+function save(){localStorage.setItem("movewell-state",JSON.stringify(state));}
+function dayTasks(i){return isWorkout[i]?workout:recovery;}
+function render(){
+  $("days").innerHTML="";
+  days.forEach((d,i)=>{
+    const tasks=dayTasks(i), done=tasks.filter((_,j)=>state.checks[i+"-"+j]).length;
+    const b=document.createElement("button");b.className="day"+(i===selected?" active":"")+(done===tasks.length?" done":"");
+    b.innerHTML=`<strong>${d.slice(0,3)}</strong><small>${done}/${tasks.length}</small>`;
+    b.setAttribute("aria-label",d);b.onclick=()=>{selected=i;render();};$("days").appendChild(b);
+  });
+  const tasks=dayTasks(selected), done=tasks.filter((_,j)=>state.checks[selected+"-"+j]).length;
+  $("dayLabel").textContent=days[selected].toUpperCase();
+  $("dayTitle").textContent=isWorkout[selected]?"Full-body session":"Recovery day";
+  $("dayTag").textContent=isWorkout[selected]?"WORKOUT":"REST";$("dayTag").className="tag"+(isWorkout[selected]?"":" rest");
+  $("dayIntro").textContent=isWorkout[selected]?"About 30 minutes · Move with control, not speed.":"Recovery matters just as much as training.";
+  $("tasks").innerHTML="";
+  tasks.forEach(([name,desc],j)=>{
+    const label=document.createElement("label");label.className="task"+(state.checks[selected+"-"+j]?" checked":"");
+    const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!state.checks[selected+"-"+j];
+    cb.onchange=()=>{state.checks[selected+"-"+j]=cb.checked;save();render();};
+    const span=document.createElement("span");span.innerHTML=`<strong>${name}</strong><br><small class="muted">${desc}</small>`;
+    label.append(cb,span);$("tasks").appendChild(label);
+  });
+  $("notes").value=state.notes[selected]||"";
+  $("notes").oninput=e=>{state.notes[selected]=e.target.value;save();};
+  $("prev").disabled=selected===0;$("next").disabled=selected===6;
+  const all=days.reduce((n,_,i)=>n+dayTasks(i).length,0);
+  const totalDone=days.reduce((n,_,i)=>n+dayTasks(i).filter((_,j)=>state.checks[i+"-"+j]).length,0);
+  $("percent").textContent=Math.round(totalDone/all*100)+"%";$("fill").style.width=(totalDone/all*100)+"%";
+  $("countText").textContent=`${totalDone} of ${all} tasks completed`;
+}
+$("prev").onclick=()=>{selected=Math.max(0,selected-1);render();};
+$("next").onclick=()=>{selected=Math.min(6,selected+1);render();};
+$("reset").onclick=()=>{if(confirm("Clear all checkmarks for this week? Your notes will be kept.")){state.checks={};save();render();}};
+render();
+
+let deferredPrompt;
+const installBtn=$("installBtn");
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;installBtn.hidden=false;});
+installBtn.addEventListener("click",async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;installBtn.hidden=true;});
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
+</script>
+</body>
+</html>
